@@ -1,0 +1,21 @@
+on: push
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - name: Clone repo to C:\r
+        shell: pwsh
+        run: git clone "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY.git" "C:/r"
+      - shell: pwsh
+        working-directory: "C:/r"
+        run: ./build.ps1
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: C:/r/out/release/DirectoryOpus-CSV-viewer-plugin.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Build artifacts
+          path: C:/r/out/release/DirectoryOpus-CSV-viewer-plugin.zip
