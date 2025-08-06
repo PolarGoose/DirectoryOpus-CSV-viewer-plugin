@@ -1,7 +1,12 @@
 #pragma once
 
-#define TRACE_METHOD const MethodTracer::Detail::MethodTracer methodTracerUniquName;
-#define TRACE_METHOD_MSG(...) const MethodTracer::Detail::MethodTracer methodTracerUniquName(std::format(__VA_ARGS__));
+#ifdef DEBUG
+  #define TRACE_METHOD const MethodTracer::Detail::MethodTracer methodTracerUniquName;
+  #define TRACE_METHOD_MSG(...) const MethodTracer::Detail::MethodTracer methodTracerUniquName(std::format(__VA_ARGS__));
+#else
+  #define TRACE_METHOD
+  #define TRACE_METHOD_MSG(...) (void)(__VA_ARGS__);
+#endif
 
 namespace MethodTracer::Detail {
 

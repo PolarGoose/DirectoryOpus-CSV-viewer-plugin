@@ -34,6 +34,7 @@
 #include <atlwin.h>
 #include <atlctrls.h>
 #include <atlcrack.h>
+#include <comdef.h>
 
 // Directory Opus Plugin SDK
 #include <DirectoryOpus-plugin-SDK/viewer plugins.h>

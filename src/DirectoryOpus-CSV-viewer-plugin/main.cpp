@@ -2,6 +2,7 @@
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/Logger.h"
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/MethodTracer.h"
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/Exception.h"
+#include "DirectoryOpus-CSV-viewer-plugin/Utils/FileUtils.h"
 #include "DirectoryOpus-CSV-viewer-plugin/UniversalCsvParser.h"
 #include "DirectoryOpus-CSV-viewer-plugin/CsvViewerControl.h"
 
@@ -55,7 +56,8 @@ DLL_EXPORT BOOL DVP_Identify(const LPVIEWERPLUGININFO info) try {
 
   info->dwFlags = DVPFIF_ExtensionsOnly
                 | DVPFIF_NoThumbnails
-                | DVPFIF_NoFileInformation;
+                | DVPFIF_NoFileInformation
+                | DVPFIF_CanHandleStreams;
 
   info->lpszHandleExts = const_cast<wchar_t*>(L".csv");
   info->dwlMinFileSize = 1;
@@ -80,7 +82,16 @@ DLL_EXPORT BOOL DVP_IdentifyFile(const HWND  /* parentControlHandle */, const LP
   // Thus we don't need to do anything.
 
   fileInfo->dwFlags = DVPFIF_CanReturnViewer;
+  return TRUE;
+} CATCH_ALL_AND_RETURN(FALSE)
 
+DLL_EXPORT BOOL DVP_IdentifyFileStream(const HWND /* parentControlHandle */, const LPSTREAM /* fileStream */, const LPWSTR /* filePath */, const LPVIEWERPLUGINFILEINFO fileInfo, const DWORD /* streamFlags */) try {
+  TRACE_METHOD;
+
+  // We only identify the file by its extension. It is already done my the DOpus.
+  // Thus we don't need to do anything.
+
+  fileInfo->dwFlags = DVPFIF_CanReturnViewer;
   return TRUE;
 } CATCH_ALL_AND_RETURN(FALSE)
 
