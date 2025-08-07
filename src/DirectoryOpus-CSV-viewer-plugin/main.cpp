@@ -3,6 +3,7 @@
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/MethodTracer.h"
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/Exception.h"
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/FileUtils.h"
+#include "DirectoryOpus-CSV-viewer-plugin/Utils/Clipboard.h"
 #include "DirectoryOpus-CSV-viewer-plugin/UniversalCsvParser.h"
 #include "DirectoryOpus-CSV-viewer-plugin/CsvViewerControl.h"
 
@@ -17,7 +18,7 @@ extern "C" BOOL WINAPI DllMain(const HINSTANCE /* thisDllModule */, const DWORD 
     DEBUG_LOG(L"DLL_PROCESS_ATTACH");
   }
 
-  if(reason == DLL_PROCESS_DETACH) {
+  if (reason == DLL_PROCESS_DETACH) {
     DEBUG_LOG(L"DLL_PROCESS_DETACH");
   }
 
@@ -29,7 +30,7 @@ DLL_EXPORT BOOL DVP_InitEx(const LPDVPINITEXDATA /* pInitExData */) try {
 
   initRefCount++;
 
-  if(initRefCount > 1) {
+  if (initRefCount > 1) {
     DEBUG_LOG(L"Already initialized. initRefCount={}", initRefCount);
     return TRUE;
   }
@@ -43,7 +44,7 @@ DLL_EXPORT void DVP_Uninit(void) try {
 
   initRefCount--;
 
-  if(initRefCount > 0) {
+  if (initRefCount > 0) {
     DEBUG_LOG(L"No need to uninit. initRefCount={}", initRefCount);
     return;
   }

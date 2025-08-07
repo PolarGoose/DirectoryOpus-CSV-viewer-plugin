@@ -19,6 +19,7 @@
     { "name": "boost-locale", "features": [ "icu" ] },
     "boost-system",
     "boost-preprocessor",
+    "boost-scope",
     "wtl",
     "rapidcsv"
   ]

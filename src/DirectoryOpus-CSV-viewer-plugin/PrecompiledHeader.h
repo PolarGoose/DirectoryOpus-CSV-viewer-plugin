@@ -14,12 +14,14 @@
 #include <fstream>
 #include <filesystem>
 #include <ranges>
+#include <algorithm>
 
 // boost
 #include <boost/noncopyable.hpp>
 #include <boost/locale.hpp>
 #include <boost/system.hpp>
 #include <boost/preprocessor.hpp>
+#include <boost/scope/scope_exit.hpp>
 
 // ICU
 #include <unicode/uchar.h>

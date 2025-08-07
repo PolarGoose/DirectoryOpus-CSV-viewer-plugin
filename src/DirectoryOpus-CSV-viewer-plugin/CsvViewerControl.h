@@ -8,6 +8,7 @@ public:
     MESSAGE_HANDLER(DVPLUGINMSG_GETCAPABILITIES, OnGetCapabilities)
     MESSAGE_HANDLER(DVPLUGINMSG_LOAD, OnLoad)
     MESSAGE_HANDLER(DVPLUGINMSG_LOADSTREAM, OnLoadStream)
+    MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
   END_MSG_MAP()
 
   LRESULT OnGetCapabilities(const UINT /* messageType */, const WPARAM /* wParam */, const LPARAM /* lParam */, BOOL& /* handled */) {
@@ -34,8 +35,23 @@ public:
     const auto& streamHandle = reinterpret_cast<LPSTREAM>(lParam);
     const auto& fileBytes = ReadFromStream(streamHandle, 1 * 1024 * 1024 /* 1 MB */);
     FillListControl(fileBytes);
+
     return TRUE;
   } CATCH_ALL_AND_RETURN(FALSE)
+
+  LRESULT OnKeyDown(UINT /*msg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& handled)
+  {
+    TRACE_METHOD_MSG(L"wParam={}", wParam);
+
+    const auto& ctrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    if (ctrlPressed && wParam == 'C') {
+      CopySelectedRowsToClipboard();
+      return 0;
+    }
+
+    handled = FALSE;
+    return 0;
+  }
 
   void OnFinalMessage(HWND) override {
     TRACE_METHOD;
@@ -43,6 +59,8 @@ public:
   }
 
   void FillListControl(const std::span<const char> csvFileBytes) {
+    SetRedraw(FALSE);
+
     // Reset the control to a clean state
     DeleteAllItems();
     for (auto i = GetHeader().GetItemCount() - 1; i >= 0; --i) {
@@ -76,6 +94,37 @@ public:
 
       ListView_SetColumnWidth(m_hWnd, col, std::max(columnWithElementBased, columnWidthHeaderBased));
     }
+
+    SetRedraw(TRUE);
+  }
+
+  void CopySelectedRowsToClipboard() {
+    TRACE_METHOD;
+
+    std::wstring selectedText;
+    const int columnCount = GetHeader().GetItemCount();
+    int row = GetNextItem(-1, LVNI_SELECTED);
+    while (row != -1) {
+      for (int col = 0; col < columnCount; ++col) {
+        std::array<wchar_t, 1024> cellContent;
+        GetItemText(row, col, cellContent.data(), static_cast<int>(cellContent.size()));
+
+        if (col) {
+          selectedText += L'\t';   // keep Excel-friendly
+        }
+
+        selectedText += cellContent.data();
+      }
+
+      selectedText += L"\r\n";
+      row = GetNextItem(row, LVNI_SELECTED);
+    }
+
+    if (selectedText.empty()) {
+      return;
+    }
+
+    CopyTextToClipboard(m_hWnd, selectedText);
   }
 };
 
