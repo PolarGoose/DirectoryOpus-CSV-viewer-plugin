@@ -11,7 +11,7 @@ public:
     _hasHeader = DetectIfHasHeader(firstLine, secondLine);
 
     std::istringstream bufferStream(utf8FileContent);
-    _csvDoc.emplace(bufferStream, rapidcsv::LabelParams(_hasHeader ? 0: -1, -1), rapidcsv::SeparatorParams(separator));
+    _csvDoc.emplace(bufferStream, rapidcsv::LabelParams(_hasHeader ? 0 : -1, -1), rapidcsv::SeparatorParams(separator));
   }
 
   auto GetColumnCount() const {
@@ -70,13 +70,20 @@ private:
   }
 
   static char DetectSeparator(const std::string_view& firstLine, const std::string_view& secondLine) {
-    const auto& commas = CountChar(firstLine, ',') + CountChar(secondLine, ',');
-    const auto& semis = CountChar(firstLine, ';') + CountChar(secondLine, ';');
-    return semis > commas ? ';' : ',';
+    const auto count = [&](char sep) { return CountChar(firstLine, sep) + CountChar(secondLine, sep); };
+
+    const std::pair<char /* separator */, std::size_t /* count */> candidates[] = {
+        {',',  count(',')},
+        {';',  count(';')},
+        {'\t', count('\t')},
+        {'|',  count('|')}
+    };
+
+    return std::ranges::max_element(candidates, {}, [](const auto& p) { return p.second; })->first;
   }
 
   static bool DetectIfHasHeader(const std::string_view& firstLine, const std::string_view& secondLine) {
-    if(secondLine.empty()) {
+    if (secondLine.empty()) {
       return false;
     }
 

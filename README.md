@@ -3,9 +3,9 @@ A viewer plugin for Directory Opus that displays CSV files as a table.
 ![Screenshot](doc/screenshot.png)
 
 # Features
-* Automatically detects the `,` or `;` delimiter.
+* Automatically detects the `,`, `;`, `\t`, `|` delimiter.
 * Automatically detects if the first row is a header.
-* Supported encodings: `UTF-8`, `UTF-8 BOM`, `UTF-16LE`, `UTF16BE`
+* Supported encodings: `UTF-8`, `UTF-8 BOM`, `UTF-16LE`, `UTF-16BE`
 * Displays only the first 1MB of the file content.
 * Selected rows can be copied to the clipboard by pressing `Ctrl+C`.
 
