@@ -23,7 +23,7 @@ file(GLOB_RECURSE src_files CONFIGURE_DEPENDS
   "src/DirectoryOpus-CSV-viewer-plugin/*.h"
   "src/DirectoryOpus-CSV-viewer-plugin/*.cpp"
   "src/DirectoryOpus-CSV-viewer-plugin/*.rc")
-add_library(DirectoryOpus-CSV-viewer-plugin MODULE ${src_files} "src/DirectoryOpus-CSV-viewer-plugin/Utils/StringUtils.h")
+add_library(DirectoryOpus-CSV-viewer-plugin MODULE ${src_files})
 target_include_directories(DirectoryOpus-CSV-viewer-plugin PRIVATE
   "src"
   "${CMAKE_BINARY_DIR}/DirectoryOpus-plugin-SDK"
@@ -37,7 +37,9 @@ target_compile_options(DirectoryOpus-CSV-viewer-plugin PUBLIC
   /WX
   /W4
   /analyze
-  /analyze:external-)
+  /analyze:external-
+  $<$<CONFIG:Release>:/GL>
+  $<$<CONFIG:Debug>:/fsanitize=address>)
 target_compile_definitions(DirectoryOpus-CSV-viewer-plugin PUBLIC
   UNICODE
   DOPUS_PLUGIN_HELPER
@@ -49,3 +51,8 @@ target_compile_definitions(DirectoryOpus-CSV-viewer-plugin PUBLIC
   $<$<CONFIG:Debug>:DEBUG>)
 target_link_libraries(DirectoryOpus-CSV-viewer-plugin PRIVATE Boost::utility Boost::locale Boost::system)
 target_precompile_headers(DirectoryOpus-CSV-viewer-plugin PRIVATE src/DirectoryOpus-CSV-viewer-plugin/PrecompiledHeader.h)
+
+# Copy sanitizer dlls to the output directory
+cmake_path(GET CMAKE_CXX_COMPILER PARENT_PATH MSVC_TOOLS_DIR)
+file(GLOB ASAN_RUNTIME_FILES "${MSVC_TOOLS_DIR}/clang_rt.asan_dynamic-*")
+file(COPY ${ASAN_RUNTIME_FILES} DESTINATION "${CMAKE_BINARY_DIR}")

@@ -31,7 +31,8 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 $root = Resolve-Path $PSScriptRoot
-$buildDir = "$root/out/release"
+$vcpkgInstallDir = "$root/build/vi"
+$buildDir = "$root/build/release"
 $version = GetVersion
 
 Info "Version: '$version'"
@@ -41,7 +42,7 @@ $vswhereCommand = Get-Command -Name "${Env:ProgramFiles(x86)}\Microsoft Visual S
 $installationPath = & $vswhereCommand -prerelease -latest -property installationPath
 
 Info "Open Visual Studio 2022 Developer PowerShell"
-& "$installationPath\Common7\Tools\Launch-VsDevShell.ps1" -Arch amd64
+& "$installationPath\Common7\Tools\Launch-VsDevShell.ps1" -SkipAutomaticLocation -Arch amd64
 
 Info "Cmake generate cache"
 cmake `
@@ -50,9 +51,10 @@ cmake `
   -G Ninja `
   -D CMAKE_BUILD_TYPE=Release `
   -D CMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
-  -D VCPKG_TARGET_TRIPLET=x64-windows-static-release `
+  -D VCPKG_TARGET_TRIPLET=x64-windows-static `
+  -D VCPKG_INSTALLED_DIR=$vcpkgInstallDir `
   -D VERSION_MAJOR:STRING=$($version.Major) `
-  -D VERSION_MINOR:STRING=$($version.Minor) 
+  -D VERSION_MINOR:STRING=$($version.Minor)
 CheckReturnCodeOfPreviousCommand "cmake cache failed"
 
 Info "Cmake build"
