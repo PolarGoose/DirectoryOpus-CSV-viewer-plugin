@@ -8,7 +8,6 @@ set(VERSION_MINOR 0 CACHE STRING "Minor version")
 find_package(Boost REQUIRED COMPONENTS utility)
 find_package(Boost REQUIRED COMPONENTS locale)
 find_package(Boost REQUIRED COMPONENTS system)
-find_path(RAPIDCSV_INCLUDE_DIRS "rapidcsv.h")
 find_path(WTL_INCLUDE_DIRS "atlapp.h")
 
 # Download DirectoryOpus Plugin API
@@ -18,16 +17,21 @@ FetchContent_Populate(
   URL_HASH MD5=a244c8d64f2211b3bf2774bd8b997c6d)
 file(COPY "${directory_opus_plugin_sdk_SOURCE_DIR}/headers/" DESTINATION "${CMAKE_BINARY_DIR}/DirectoryOpus-plugin-SDK/DirectoryOpus-plugin-SDK")
 
+file(DOWNLOAD
+  https://github.com/vincentlaucsb/csv-parser/releases/download/5.1.0/csv.hpp
+  "${CMAKE_BINARY_DIR}/vincentlaucsb_csv_parser/vincentlaucsb/csv.hpp"
+  EXPECTED_HASH SHA256=90a9b032dcde3f38c1baac5f873a09fc6a41e63d972fb810f1bfccdf5c8040a8)
+
 # Configure DirectoryOpus-CSV-viewer-plugin target
 file(GLOB_RECURSE src_files CONFIGURE_DEPENDS
   "src/DirectoryOpus-CSV-viewer-plugin/*.h"
   "src/DirectoryOpus-CSV-viewer-plugin/*.cpp"
   "src/DirectoryOpus-CSV-viewer-plugin/*.rc")
-add_library(DirectoryOpus-CSV-viewer-plugin MODULE ${src_files} "src/DirectoryOpus-CSV-viewer-plugin/Utils/StringUtils.h")
+add_library(DirectoryOpus-CSV-viewer-plugin MODULE ${src_files})
 target_include_directories(DirectoryOpus-CSV-viewer-plugin PRIVATE
   "src"
   "${CMAKE_BINARY_DIR}/DirectoryOpus-plugin-SDK"
-  ${RAPIDCSV_INCLUDE_DIRS}
+  "${CMAKE_BINARY_DIR}/vincentlaucsb_csv_parser"
   ${WTL_INCLUDE_DIRS})
 target_compile_features(DirectoryOpus-CSV-viewer-plugin PUBLIC cxx_std_23)
 target_compile_options(DirectoryOpus-CSV-viewer-plugin PUBLIC
@@ -37,7 +41,8 @@ target_compile_options(DirectoryOpus-CSV-viewer-plugin PUBLIC
   /WX
   /W4
   /analyze
-  /analyze:external-)
+  /analyze:external-
+  $<$<CONFIG:Release>:/GL>)
 target_compile_definitions(DirectoryOpus-CSV-viewer-plugin PUBLIC
   UNICODE
   DOPUS_PLUGIN_HELPER

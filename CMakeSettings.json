@@ -5,9 +5,9 @@
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "buildRoot": "${projectDir}\\out\\build\\${name}",
-      "installRoot": "${projectDir}\\out\\install\\${name}",
-      "cmakeCommandArgs": "-D VCPKG_TARGET_TRIPLET=x64-windows-static",
+      "buildRoot": "${projectDir}\\build\\build\\${name}",
+      "installRoot": "${projectDir}\\build\\install\\${name}",
+      "cmakeCommandArgs": "-D VCPKG_TARGET_TRIPLET=x64-windows-static -D VCPKG_INSTALLED_DIR=${projectDir}\\build\\vi",
       "buildCommandArgs": "",
       "ctestCommandArgs": ""
     }

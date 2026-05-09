@@ -8,9 +8,11 @@ public:
     MESSAGE_HANDLER(DVPLUGINMSG_GETCAPABILITIES, OnGetCapabilities)
     MESSAGE_HANDLER(DVPLUGINMSG_LOAD, OnLoad)
     MESSAGE_HANDLER(DVPLUGINMSG_LOADSTREAM, OnLoadStream)
+    MESSAGE_HANDLER(DVPLUGINMSG_REINITIALIZE, OnReinitialize)
     MESSAGE_HANDLER(WM_KEYDOWN, OnKeyDown)
   END_MSG_MAP()
 
+private:
   LRESULT OnGetCapabilities(const UINT /* messageType */, const WPARAM /* wParam */, const LPARAM /* lParam */, BOOL& /* handled */) {
     TRACE_METHOD;
 
@@ -23,8 +25,8 @@ public:
     const auto& filePath = reinterpret_cast<LPTSTR>(lParam);
     TRACE_METHOD_MSG(L"filePath={}", filePath);
 
-    const auto& fileBytes = ReadFromFile(filePath, 1 * 1024 * 1024 /* 1 MB */);
-    FillListControl(fileBytes);
+    _cachedFileBytes = ReadFromFile(filePath, ConfigurationStore::GetInstance().GetConfig().GetReadSizeBytes());
+    FillListControl();
     return TRUE;
   } CATCH_ALL_AND_RETURN(FALSE)
 
@@ -33,11 +35,17 @@ public:
     TRACE_METHOD_MSG(L"filePath={}", filePath);
 
     const auto& streamHandle = reinterpret_cast<LPSTREAM>(lParam);
-    const auto& fileBytes = ReadFromStream(streamHandle, 1 * 1024 * 1024 /* 1 MB */);
-    FillListControl(fileBytes);
+    _cachedFileBytes = ReadFromStream(streamHandle, static_cast<ULONG>(ConfigurationStore::GetInstance().GetConfig().GetReadSizeBytes()));
+    FillListControl();
 
     return TRUE;
   } CATCH_ALL_AND_RETURN(FALSE)
+
+  LRESULT OnReinitialize(const UINT /* messageType */, const WPARAM /* wParam */, const LPARAM /* lParam */, BOOL& /* handled */) try {
+    TRACE_METHOD;
+    FillListControl();
+    return 0;
+  } CATCH_ALL_AND_RETURN(0)
 
   LRESULT OnKeyDown(UINT /*msg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& handled)
   {
@@ -53,12 +61,12 @@ public:
     return 0;
   }
 
-  void OnFinalMessage(HWND) override {
+  void OnFinalMessage(HWND /* hWnd */) override {
     TRACE_METHOD;
     delete this;
   }
 
-  void FillListControl(const std::span<const char> csvFileBytes) {
+  void FillListControl() {
     SetRedraw(FALSE);
 
     // Reset the control to a clean state
@@ -67,7 +75,7 @@ public:
       DeleteColumn(i);
     }
 
-    const UniversalCsvParser csvParser(csvFileBytes);
+    const UniversalCsvParser csvParser(_cachedFileBytes);
 
     // Populate column names
     for (int colIndex = 0; colIndex < csvParser.GetColumnCount(); colIndex++) {
@@ -77,6 +85,9 @@ public:
     // Populate rows
     for (auto rowIndex = 0; rowIndex < csvParser.GetRowCount(); rowIndex++) {
       const auto& row = csvParser.GetRow(rowIndex);
+      if(row.empty()) {
+        continue;
+      }
 
       const auto& idx = InsertItem(rowIndex, row[0].c_str());
       for (auto colIndex = 1; colIndex < row.size(); colIndex++) {
@@ -126,6 +137,8 @@ public:
 
     CopyTextToClipboard(m_hWnd, selectedText);
   }
+
+  std::vector<char> _cachedFileBytes;
 };
 
 inline HWND CreateCsvViewerCtrl(const HWND parentControlHandle, const LPRECT drawingArea) {

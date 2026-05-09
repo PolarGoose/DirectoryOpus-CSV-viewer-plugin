@@ -4,8 +4,10 @@
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/Exception.h"
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/FileUtils.h"
 #include "DirectoryOpus-CSV-viewer-plugin/Utils/Clipboard.h"
+#include "DirectoryOpus-CSV-viewer-plugin/Configuration.h"
 #include "DirectoryOpus-CSV-viewer-plugin/UniversalCsvParser.h"
 #include "DirectoryOpus-CSV-viewer-plugin/CsvViewerControl.h"
+#include "DirectoryOpus-CSV-viewer-plugin/ConfigurationDialog.h"
 
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 
@@ -13,9 +15,10 @@
 // (e.g. Click the Refresh button in the plugins list to trigger an additional Init/Uninit pair.)
 static int initRefCount = 0;
 
-extern "C" BOOL WINAPI DllMain(const HINSTANCE /* thisDllModule */, const DWORD reason, const LPVOID /*reserved*/) try {
+extern "C" BOOL WINAPI DllMain(const HINSTANCE thisDllModule, const DWORD reason, const LPVOID /*reserved*/) try {
   if (reason == DLL_PROCESS_ATTACH) {
     DEBUG_LOG(L"DLL_PROCESS_ATTACH");
+    ATL::_AtlBaseModule.SetResourceInstance(thisDllModule);
   }
 
   if (reason == DLL_PROCESS_DETACH) {
@@ -35,7 +38,6 @@ DLL_EXPORT BOOL DVP_InitEx(const LPDVPINITEXDATA /* pInitExData */) try {
     return TRUE;
   }
 
-  // Nothing needs to be done during plugin initialization
   return TRUE;
 } CATCH_ALL_AND_RETURN(FALSE)
 
@@ -58,6 +60,7 @@ DLL_EXPORT BOOL DVP_Identify(const LPVIEWERPLUGININFO info) try {
   info->dwFlags = DVPFIF_ExtensionsOnly
                 | DVPFIF_NoThumbnails
                 | DVPFIF_NoFileInformation
+                | DVPFIF_CanConfigure
                 | DVPFIF_CanHandleStreams;
 
   info->lpszHandleExts = const_cast<wchar_t*>(L".csv");
@@ -79,9 +82,7 @@ DLL_EXPORT BOOL DVP_Identify(const LPVIEWERPLUGININFO info) try {
 DLL_EXPORT BOOL DVP_IdentifyFile(const HWND  /* parentControlHandle */, const LPTSTR filePath, const LPVIEWERPLUGINFILEINFO fileInfo, const HANDLE /* abortEvent */) try {
   TRACE_METHOD_MSG(L"filePath={}", filePath);
 
-  // We only identify the file by its extension. It is already done my the DOpus.
-  // Thus we don't need to do anything.
-
+  // We only identify the file by its extension. It is already done by the DOpus. Thus we don't need to do anything.
   fileInfo->dwFlags = DVPFIF_CanReturnViewer;
   return TRUE;
 } CATCH_ALL_AND_RETURN(FALSE)
@@ -89,9 +90,7 @@ DLL_EXPORT BOOL DVP_IdentifyFile(const HWND  /* parentControlHandle */, const LP
 DLL_EXPORT BOOL DVP_IdentifyFileStream(const HWND /* parentControlHandle */, const LPSTREAM /* fileStream */, const LPWSTR /* filePath */, const LPVIEWERPLUGINFILEINFO fileInfo, const DWORD /* streamFlags */) try {
   TRACE_METHOD;
 
-  // We only identify the file by its extension. It is already done my the DOpus.
-  // Thus we don't need to do anything.
-
+  // We only identify the file by its extension. It is already done by the DOpus. Thus we don't need to do anything.
   fileInfo->dwFlags = DVPFIF_CanReturnViewer;
   return TRUE;
 } CATCH_ALL_AND_RETURN(FALSE)
@@ -99,6 +98,11 @@ DLL_EXPORT BOOL DVP_IdentifyFileStream(const HWND /* parentControlHandle */, con
 DLL_EXPORT HWND DVP_CreateViewer(const HWND parentControlHandle, const LPRECT drawingArea, DWORD /* drawingFlags */) try {
   TRACE_METHOD;
   return CreateCsvViewerCtrl(parentControlHandle, drawingArea);
+} CATCH_ALL_AND_RETURN(nullptr)
+
+DLL_EXPORT HWND DVP_Configure(const HWND parentWindow, const HWND notifyWindow, const DWORD notifyData) try {
+  TRACE_METHOD;
+  return CreateConfigurationDialog(parentWindow, notifyWindow, notifyData);
 } CATCH_ALL_AND_RETURN(nullptr)
 
 DLL_EXPORT BOOL DVP_USBSafe(const LPOPUSUSBSAFEDATA /* uSBSafeData */) {

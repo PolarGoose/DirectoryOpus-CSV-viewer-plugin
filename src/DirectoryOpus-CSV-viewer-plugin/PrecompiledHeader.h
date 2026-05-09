@@ -5,9 +5,11 @@
 #include <winscard.h>
 
 // std
+#include <cwctype>
 #include <source_location>
 #include <exception>
 #include <thread>
+#include <mutex>
 #include <sstream>
 #include <typeinfo>
 #include <format>
@@ -23,11 +25,8 @@
 #include <boost/preprocessor.hpp>
 #include <boost/scope/scope_exit.hpp>
 
-// ICU
-#include <unicode/uchar.h>
-
-// rapidcsv
-#include <rapidcsv.h>
+// vincentlaucsb csv parser
+#include <vincentlaucsb/csv.hpp>
 
 // WTL
 #include <atlbase.h>

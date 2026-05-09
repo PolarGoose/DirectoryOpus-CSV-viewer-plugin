@@ -2,7 +2,7 @@
   "vcpkg-configuration": {
     "default-registry": {
       "kind": "git",
-      "baseline": "bffcbb75f71553824aa948a7e7b4f798662a6fa7",
+      "baseline": "99a97de2cb371449d4fb9dc970f2ac562d689ec2",
       "repository": "https://github.com/microsoft/vcpkg"
     },
     "registries": [
@@ -11,16 +11,18 @@
         "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
         "name": "microsoft"
       }
+    ],
+    "overlay-triplets": [
+      "vcpkg/overlay_triplets"
     ]
   },
 
   "dependencies": [
     "boost-utility",
-    { "name": "boost-locale", "features": [ "icu" ] },
+    "boost-locale",
     "boost-system",
     "boost-preprocessor",
     "boost-scope",
-    "wtl",
-    "rapidcsv"
+    "wtl"
   ]
 }
